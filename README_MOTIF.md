@@ -1,4 +1,80 @@
-# Motif - Music Streaming + Social Media App
+# Motif - Music Social App
+
+A React Native mobile app for discovering, sharing, and uploading music. Built with Expo SDK 54, Expo Router, and a dark glassmorphism UI.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React Native 0.81 + Expo SDK 54 |
+| Routing | Expo Router 6 (file-based) |
+| State | React Context + Zustand |
+| Audio | expo-audio |
+| Animations | react-native-reanimated 4 |
+| UI | expo-linear-gradient, expo-blur, @expo/vector-icons |
+| Auth | Local (AsyncStorage) |
+| Backend | Hardcoded mock data (315 tracks, Billboard 2020-2025) |
+
+## Project Structure
+
+```
+motif-app/
+  app/                    # Expo Router screens
+    (auth)/               # Login + Signup
+    (tabs)/               # Main tab screens
+      index.tsx           # Home
+      explore.tsx         # Discover + Billboard charts
+      library.tsx         # My Music
+      social.tsx          # Feed
+      profile.tsx         # User profile
+    modal.tsx             # Full-screen player
+    upload.tsx            # Upload track
+    index.tsx             # Auth gate entry
+  src/
+    components/
+      MusicPlayer/        # MiniPlayer bar
+      UI/                 # Design system components
+    context/              # AuthContext, MusicPlayerContext, SocialContext
+    data/mockData.ts      # 315 tracks + Billboard + posts
+    services/music/       # musicService (local store)
+    styles/theme.ts       # Design tokens
+    types/                # TypeScript types
+  config/firebase.ts      # Firebase SDK (unused, kept for future)
+```
+
+## Getting Started
+
+```bash
+cd motif-app
+npm install
+npx expo start --clear
+```
+
+Press `a` to open on Android, `i` for iOS.
+
+## Design System
+
+- **Colors:** `#0060EF` primary blue, `#0D0D14` background, `#FFFFFC` surface
+- **Typography:** 7-step scale (h1 → caption)
+- **Spacing:** 4px grid (xs:4, sm:8, md:16, lg:24, xl:32, xxl:48)
+- **Elevation:** 4 levels with drop shadows
+- **Radius:** none/sm/md/lg/full
+
+## Screens
+
+- **Home** — Featured track hero, curated playlists, trending
+- **Explore** — Genre filter chips, trending tracks, Billboard Hot 100 2020-2025
+- **Library** — Liked / Uploaded / Albums / Artists tabs
+- **Social** — Post feed with likes, comments, shares
+- **Profile** — User stats, menu, sign out
+- **Upload** — Pick audio + cover art, genre chips, progress bar
+- **Player** — Full-screen now playing with seek bar
+
+## Known Limitations
+
+- Audio playback requires real audio file URIs (mock data uses placeholder URIs)
+- Firebase Auth is configured but requires Email/Password provider enabled in Firebase Console
+- Upload stores files locally only (no cloud storage without Firebase) - Music Streaming + Social Media App
 
 ## Overview
 
