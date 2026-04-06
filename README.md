@@ -148,4 +148,4 @@ Press `a` for Android emulator, `i` for iOS simulator, or scan the QR code with 
 
 ## License
 
-MIT
+© mykumykuni. All rights reserved.
