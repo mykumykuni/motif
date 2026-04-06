@@ -1,6 +1,44 @@
-import React, { createContext, useContext, useState } from 'react';
+﻿import React, { createContext, useContext, useState } from 'react';
 import { Post, User, Comment } from '../types';
+import { POSTS } from '../data/mockData';
 
+const MOCK_USER = (id: string, displayName: string): User => ({
+  id,
+  email: `${id}@motif.app`,
+  username: displayName.toLowerCase().replace(/\s+/g, '_'),
+  displayName,
+  role: 'listener' as const,
+  followers: 0,
+  following: 0,
+  isVerified: false,
+  createdAt: '',
+  updatedAt: '',
+} as User);
+
+const toPost = (p: typeof POSTS[0]): Post => ({
+  id: p.id,
+  author: {
+    id: p.authorId,
+    email: `${p.authorId}@motif.app`,
+    username: p.authorName.toLowerCase().replace(/\s+/g, '_'),
+    displayName: p.authorName,
+    role: 'listener' as const,
+    followers: 0,
+    following: 0,
+    isVerified: p.isVerified,
+    createdAt: '',
+    updatedAt: '',
+  } as User,
+  content: p.content,
+  likes: p.likes,
+  comments: p.comments,
+  shares: p.shares,
+  isLiked: p.isLiked,
+  createdAt: p.createdAt,
+  updatedAt: p.createdAt,
+});
+
+const SEED_POSTS: Post[] = POSTS.map(toPost);
 interface SocialContextType {
   // Feed
   feed: Post[];
@@ -33,190 +71,76 @@ interface SocialContextType {
 const SocialContext = createContext<SocialContextType | undefined>(undefined);
 
 export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [feed, setFeed] = useState<Post[]>([]);
+  const [feed, setFeed] = useState<Post[]>(SEED_POSTS);
   const [isLoadingFeed, setIsLoadingFeed] = useState(false);
   const [userFollowing, setUserFollowing] = useState<string[]>([]);
-  const [userFollowers, setUserFollowers] = useState<string[]>([]);
-  const [discoverPosts, setDiscoverPosts] = useState<Post[]>([]);
+  const [userFollowers] = useState<string[]>([]);
+  const [discoverPosts, setDiscoverPosts] = useState<Post[]>(SEED_POSTS.slice().reverse());
 
   const refreshFeed = async () => {
-    try {
-      setIsLoadingFeed(true);
-      // TODO: Implement API call to fetch feed
-      console.log('Refreshing feed...');
-      // setFeed(await fetchFeed());
-    } catch (error) {
-      console.error('Error refreshing feed:', error);
-    } finally {
-      setIsLoadingFeed(false);
-    }
+    setIsLoadingFeed(true);
+    await new Promise(r => setTimeout(r, 600));
+    setFeed([...SEED_POSTS]);
+    setIsLoadingFeed(false);
   };
 
-  const loadMoreFeed = async () => {
-    try {
-      // TODO: Implement pagination
-      console.log('Loading more feed...');
-    } catch (error) {
-      console.error('Error loading more feed:', error);
-    }
-  };
+  const loadMoreFeed = async () => {};
 
   const createPost = async (content: string, images?: string[], tags?: string[]): Promise<Post> => {
-    try {
-      // TODO: Implement API call
-      const mockPost: Post = {
-        id: Date.now().toString(),
-        author: {} as User, // TODO: get current user
-        content,
-        images,
-        tags,
-        likes: 0,
-        comments: 0,
-        shares: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setFeed([mockPost, ...feed]);
-      return mockPost;
-    } catch (error) {
-      console.error('Error creating post:', error);
-      throw error;
-    }
+    const post: Post = {
+      id: Date.now().toString(),
+      author: MOCK_USER('me', 'You'),
+      content, images, tags,
+      likes: 0, comments: 0, shares: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setFeed(prev => [post, ...prev]);
+    return post;
   };
 
   const likePost = async (postId: string) => {
-    try {
-      // TODO: Implement API call
-      const post = feed.find((p) => p.id === postId);
-      if (post) {
-        post.likes += 1;
-        post.isLiked = true;
-        setFeed([...feed]);
-      }
-    } catch (error) {
-      console.error('Error liking post:', error);
-    }
+    setFeed(prev => prev.map(p => p.id === postId ? { ...p, likes: p.likes + 1, isLiked: true } : p));
   };
 
   const unlikePost = async (postId: string) => {
-    try {
-      // TODO: Implement API call
-      const post = feed.find((p) => p.id === postId);
-      if (post) {
-        post.likes -= 1;
-        post.isLiked = false;
-        setFeed([...feed]);
-      }
-    } catch (error) {
-      console.error('Error unliking post:', error);
-    }
+    setFeed(prev => prev.map(p => p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1), isLiked: false } : p));
   };
 
   const deletePost = async (postId: string) => {
-    try {
-      // TODO: Implement API call
-      setFeed(feed.filter((p) => p.id !== postId));
-    } catch (error) {
-      console.error('Error deleting post:', error);
-    }
+    setFeed(prev => prev.filter(p => p.id !== postId));
   };
 
-  const getComments = async (postId: string): Promise<Comment[]> => {
-    try {
-      // TODO: Implement API call
-      return [];
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-      return [];
-    }
-  };
+  const getComments = async (_postId: string): Promise<Comment[]> => [];
 
   const addComment = async (postId: string, content: string): Promise<Comment> => {
-    try {
-      // TODO: Implement API call
-      const mockComment: Comment = {
-        id: Date.now().toString(),
-        author: {} as User, // TODO: get current user
-        content,
-        likes: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      const post = feed.find((p) => p.id === postId);
-      if (post) {
-        post.comments += 1;
-        setFeed([...feed]);
-      }
-
-      return mockComment;
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      throw error;
-    }
+    const comment: Comment = {
+      id: Date.now().toString(),
+      author: MOCK_USER('me', 'You'),
+      content, likes: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setFeed(prev => prev.map(p => p.id === postId ? { ...p, comments: p.comments + 1 } : p));
+    return comment;
   };
 
-  const deleteComment = async (commentId: string) => {
-    try {
-      // TODO: Implement API call
-      console.log('Deleting comment:', commentId);
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-    }
-  };
+  const deleteComment = async (_commentId: string) => {};
 
   const followUser = async (userId: string) => {
-    try {
-      // TODO: Implement API call
-      if (!userFollowing.includes(userId)) {
-        setUserFollowing([...userFollowing, userId]);
-      }
-    } catch (error) {
-      console.error('Error following user:', error);
-    }
+    setUserFollowing(prev => [...prev, userId]);
   };
 
   const unfollowUser = async (userId: string) => {
-    try {
-      // TODO: Implement API call
-      setUserFollowing(userFollowing.filter((id) => id !== userId));
-    } catch (error) {
-      console.error('Error unfollowing user:', error);
-    }
+    setUserFollowing(prev => prev.filter(id => id !== userId));
   };
 
   const loadDiscoverPosts = async () => {
-    try {
-      // TODO: Implement API call to load discover posts
-      // This should load a mix of trending, recommended, and popular posts
-      console.log('Loading discover posts...');
-    } catch (error) {
-      console.error('Error loading discover posts:', error);
-    }
+    setDiscoverPosts([...SEED_POSTS].sort(() => Math.random() - 0.5));
   };
 
   return (
-    <SocialContext.Provider
-      value={{
-        feed,
-        isLoadingFeed,
-        refreshFeed,
-        loadMoreFeed,
-        createPost,
-        likePost,
-        unlikePost,
-        deletePost,
-        getComments,
-        addComment,
-        deleteComment,
-        followUser,
-        unfollowUser,
-        userFollowing,
-        userFollowers,
-        discoverPosts,
-        loadDiscoverPosts,
-      }}
-    >
+    <SocialContext.Provider value={{ feed, isLoadingFeed, refreshFeed, loadMoreFeed, createPost, likePost, unlikePost, deletePost, getComments, addComment, deleteComment, followUser, unfollowUser, userFollowing, userFollowers, discoverPosts, loadDiscoverPosts }}>
       {children}
     </SocialContext.Provider>
   );
@@ -224,8 +148,7 @@ export const SocialProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useSocial = () => {
   const context = useContext(SocialContext);
-  if (!context) {
-    throw new Error('useSocial must be used within SocialProvider');
-  }
+  if (!context) throw new Error('useSocial must be used within SocialProvider');
   return context;
 };
+

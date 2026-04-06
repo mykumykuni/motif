@@ -4,14 +4,16 @@ import {
   View,
   Text,
   FlatList,
-  SafeAreaView,
   RefreshControl,
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSocial } from '../../src/context/SocialContext';
 import { PostComponent } from '../../src/components/Social/PostComponent';
-import { colors, spacing, borderRadius, typography, shadows } from '../../src/styles/theme';
+import { colors, spacing, borderRadius, typography, elevation } from '../../src/styles/theme';
 import { Post } from '../../src/types';
 
 // Mock posts for demonstration
@@ -31,7 +33,7 @@ const MOCK_POSTS: Post[] = [
       createdAt: '2024-01-01',
       updatedAt: '2024-01-01',
     },
-    content: 'Just dropped my new single "Midnight Dreams"! Available on all platforms now 🎵',
+    content: 'Just dropped my new single "Midnight Dreams"! Available on all platforms now.',
     likes: 342,
     comments: 28,
     shares: 15,
@@ -52,7 +54,7 @@ const MOCK_POSTS: Post[] = [
       createdAt: '2024-02-01',
       updatedAt: '2024-02-01',
     },
-    content: 'This playlist has been my mood all week! 🎧✨',
+    content: 'This playlist has been my mood all week.',
     likes: 89,
     comments: 12,
     shares: 5,
@@ -74,7 +76,7 @@ const MOCK_POSTS: Post[] = [
       createdAt: '2023-12-01',
       updatedAt: '2024-01-15',
     },
-    content: 'Live set tonight at 8PM on our channel! Join us 🎵🎧',
+    content: 'Live set tonight at 8PM on our channel. Join us.',
     likes: 256,
     comments: 42,
     shares: 89,
@@ -136,7 +138,7 @@ export default function SocialFeedScreen() {
           <TextInput
             style={styles.composerField}
             placeholder="Share your thoughts about music..."
-            placeholderTextColor={colors.primary[400]}
+            placeholderTextColor={colors.text.secondary}
             value={postText}
             onChangeText={setPostText}
             onFocus={() => setIsComposingPost(true)}
@@ -198,12 +200,14 @@ export default function SocialFeedScreen() {
   const displayPosts = feed.length > 0 ? feed : MOCK_POSTS;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
         data={displayPosts}
         renderItem={renderPost}
         keyExtractor={(item: Post) => item.id}
         ListHeaderComponent={renderHeader}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: spacing.lg }}
         ListEmptyComponent={
           !isLoadingFeed ? (
             <View style={styles.emptyState}>
@@ -215,7 +219,9 @@ export default function SocialFeedScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={colors.accent.sage}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+            progressBackgroundColor={colors.backgroundElevated}
           />
         }
         scrollEventThrottle={16}
@@ -226,25 +232,22 @@ export default function SocialFeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.primary[50],
-  },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary[100],
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  headerTitle: {
-    fontSize: typography.sizes['3xl'],
-    fontWeight: typography.weights.bold,
-    color: colors.primary[900],
-  },
+  headerTitle: { ...typography.h1, color: colors.text.primary },
   composerContainer: {
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
   },
   composerInput: {
     flexDirection: 'row',
@@ -252,75 +255,53 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   composerAvatar: {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primary[200],
-    marginTop: spacing.sm,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   composerField: {
     flex: 1,
-    minHeight: 44,
-    color: colors.primary[900],
-    fontSize: typography.sizes.base,
-    paddingHorizontal: spacing.md,
+    minHeight: 40,
+    color: colors.text.primary,
+    ...typography.body1,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.primary[50],
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.primary[200],
-    flexWrap: 'wrap',
   },
   composerActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: spacing.md,
-    marginTop: spacing.md,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   cancelButton: {
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.primary[100],
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  cancelButtonText: {
-    fontSize: typography.sizes.base,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary[700],
-  },
+  cancelButtonText: { ...typography.button, color: colors.text.secondary },
   postButton: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.accent.sage,
-    ...shadows.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
   },
-  postButtonText: {
-    fontSize: typography.sizes.base,
-    fontWeight: typography.weights.semibold,
-    color: colors.white,
-  },
-  postButtonDisabled: {
-    opacity: 0.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.primary[100],
-  },
-  lastPost: {
-    marginBottom: spacing.xl,
-  },
+  postButtonText: { ...typography.button, color: colors.white },
+  postButtonDisabled: { opacity: 0.45 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: spacing.lg },
+  listContent: { paddingBottom: 120 },
+  lastPost: { marginBottom: 0 },
   emptyState: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xxxl,
+    paddingVertical: spacing.xxl,
+    gap: spacing.md,
   },
-  emptyStateText: {
-    fontSize: typography.sizes.base,
-    color: colors.primary[400],
-    fontWeight: typography.weights.medium,
-    textAlign: 'center',
-  },
+  emptyStateText: { ...typography.body1, color: colors.text.secondary, textAlign: 'center' },
 });

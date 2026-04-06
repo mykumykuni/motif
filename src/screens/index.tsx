@@ -1,12 +1,12 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Heading, Container } from '../components/UI';
+import { Text, Container } from '../components/UI';
 import { colors, spacing } from '../styles/theme';
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.primary[50],
+    backgroundColor: colors.background,
   },
 });
 
@@ -14,9 +14,9 @@ export const HomeScreen = () => {
   return (
     <View style={styles.screen}>
       <Container padding="lg">
-        <Heading color={colors.primary[900]}>
+        <Text variant="h1" color={colors.text.primary}>
           Welcome to Motif
-        </Heading>
+        </Text>
       </Container>
     </View>
   );
@@ -26,9 +26,9 @@ export const DiscoverScreen = () => {
   return (
     <View style={styles.screen}>
       <Container padding="lg">
-        <Heading color={colors.primary[900]}>
+        <Text variant="h1" color={colors.text.primary}>
           Discover
-        </Heading>
+        </Text>
       </Container>
     </View>
   );
@@ -38,9 +38,9 @@ export const LibraryScreen = () => {
   return (
     <View style={styles.screen}>
       <Container padding="lg">
-        <Heading color={colors.primary[900]}>
+        <Text variant="h1" color={colors.text.primary}>
           Your Library
-        </Heading>
+        </Text>
       </Container>
     </View>
   );
@@ -50,7 +50,7 @@ export const SearchScreen = () => {
   return (
     <View style={styles.screen}>
       <Container padding="lg">
-        <Heading color={colors.primary[900]}>
+        <Heading color={colors.text.primary}>
           Search
         </Heading>
       </Container>
@@ -62,7 +62,7 @@ export const ProfileScreen = () => {
   return (
     <View style={styles.screen}>
       <Container padding="lg">
-        <Heading color={colors.primary[900]}>
+        <Heading color={colors.text.primary}>
           Profile
         </Heading>
       </Container>

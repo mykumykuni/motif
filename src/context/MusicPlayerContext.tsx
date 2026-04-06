@@ -1,8 +1,12 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
+import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
+import type { AudioPlayer, AudioStatus } from 'expo-audio';
 import { PlayerState, Track } from '../types';
+import { incrementPlayCount } from '../services/music/musicService';
 
 interface MusicPlayerContextType {
   playerState: PlayerState;
+  duration: number;
   play: (track: Track) => void;
   pause: () => void;
   resume: () => void;
@@ -30,115 +34,168 @@ const initialPlayerState: PlayerState = {
 
 export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [playerState, setPlayerState] = useState<PlayerState>(initialPlayerState);
+  const [duration, setDuration] = useState(0);
+  const playerRef = useRef<AudioPlayer | null>(null);
+  const subscriptionRef = useRef<{ remove: () => void } | null>(null);
 
-  const play = (track: Track) => {
+  // Configure audio session once
+  useEffect(() => {
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: 'duckOthers',
+    });
+  }, []);
+
+  const destroyPlayer = useCallback(() => {
+    subscriptionRef.current?.remove();
+    subscriptionRef.current = null;
+    playerRef.current?.remove();
+    playerRef.current = null;
+  }, []);
+
+  const loadAndPlay = useCallback((track: Track, position = 0) => {
+    destroyPlayer();
+
+    const player = createAudioPlayer({ uri: track.audioUrl }, { updateInterval: 500 });
+    playerRef.current = player;
+
+    subscriptionRef.current = player.addListener('playbackStatusUpdate', (status: AudioStatus) => {
+      setDuration(status.duration ?? 0);
+      setPlayerState(prev => ({
+        ...prev,
+        playbackPosition: status.currentTime ?? 0,
+        isPlaying: status.playing,
+      }));
+      if (status.didJustFinish) {
+        setPlayerState(prev => {
+          const { queue, queueIndex, repeatMode, isShuffle } = prev;
+          if (repeatMode === 'one') {
+            loadAndPlay(track, 0);
+            return prev;
+          }
+          let nextIndex = queueIndex + 1;
+          if (isShuffle) nextIndex = Math.floor(Math.random() * queue.length);
+          if (nextIndex >= queue.length) {
+            if (repeatMode === 'all') nextIndex = 0;
+            else return { ...prev, isPlaying: false };
+          }
+          const nextTrack = queue[nextIndex];
+          loadAndPlay(nextTrack, 0);
+          return { ...prev, queueIndex: nextIndex, currentTrack: nextTrack, playbackPosition: 0 };
+        });
+      }
+    });
+
+    if (position > 0) {
+      player.seekTo(position).then(() => player.play());
+    } else {
+      player.play();
+    }
+
+    incrementPlayCount(track.id).catch(() => {});
+  }, [destroyPlayer]);
+
+  const play = useCallback((track: Track) => {
     setPlayerState(prev => ({
       ...prev,
       currentTrack: track,
       isPlaying: true,
       playbackPosition: 0,
     }));
-  };
+    loadAndPlay(track, 0);
+  }, [loadAndPlay]);
 
-  const pause = () => {
-    setPlayerState(prev => ({
-      ...prev,
-      isPlaying: false,
-    }));
-  };
+  const pause = useCallback(() => {
+    playerRef.current?.pause();
+    setPlayerState(prev => ({ ...prev, isPlaying: false }));
+  }, []);
 
-  const resume = () => {
-    setPlayerState(prev => ({
-      ...prev,
-      isPlaying: true,
-    }));
-  };
+  const resume = useCallback(() => {
+    playerRef.current?.play();
+    setPlayerState(prev => ({ ...prev, isPlaying: true }));
+  }, []);
 
-  const stop = () => {
-    setPlayerState(prev => ({
-      ...prev,
-      isPlaying: false,
-      playbackPosition: 0,
-      currentTrack: null,
-    }));
-  };
+  const stop = useCallback(() => {
+    destroyPlayer();
+    setPlayerState(initialPlayerState);
+    setDuration(0);
+  }, [destroyPlayer]);
 
-  const next = () => {
+  const seek = useCallback((position: number) => {
+    playerRef.current?.seekTo(position);
+    setPlayerState(prev => ({ ...prev, playbackPosition: position }));
+  }, []);
+
+  const next = useCallback(() => {
     setPlayerState(prev => {
-      let nextIndex = prev.queueIndex + 1;
-      if (nextIndex >= prev.queue.length) {
-        nextIndex = 0;
+      const { queue, queueIndex, isShuffle, repeatMode } = prev;
+      if (queue.length === 0) return prev;
+      let nextIndex = isShuffle
+        ? Math.floor(Math.random() * queue.length)
+        : queueIndex + 1;
+      if (nextIndex >= queue.length) {
+        if (repeatMode === 'all') nextIndex = 0;
+        else return prev;
       }
-      return {
-        ...prev,
-        queueIndex: nextIndex,
-        currentTrack: prev.queue[nextIndex] || null,
-        playbackPosition: 0,
-      };
+      const nextTrack = queue[nextIndex];
+      loadAndPlay(nextTrack, 0);
+      return { ...prev, queueIndex: nextIndex, currentTrack: nextTrack, playbackPosition: 0, isPlaying: true };
     });
-  };
+  }, [loadAndPlay]);
 
-  const previous = () => {
+  const previous = useCallback(() => {
     setPlayerState(prev => {
-      let prevIndex = prev.queueIndex - 1;
-      if (prevIndex < 0) {
-        prevIndex = prev.queue.length - 1;
+      const { queue, queueIndex, playbackPosition } = prev;
+      // If more than 3s in, restart current track
+      if (playbackPosition > 3) {
+        seek(0);
+        return prev;
       }
-      return {
-        ...prev,
-        queueIndex: prevIndex,
-        currentTrack: prev.queue[prevIndex] || null,
-        playbackPosition: 0,
-      };
+      if (queue.length === 0) return prev;
+      const prevIndex = Math.max(0, queueIndex - 1);
+      const prevTrack = queue[prevIndex];
+      loadAndPlay(prevTrack, 0);
+      return { ...prev, queueIndex: prevIndex, currentTrack: prevTrack, playbackPosition: 0, isPlaying: true };
     });
-  };
+  }, [loadAndPlay, seek]);
 
-  const seek = (position: number) => {
-    setPlayerState(prev => ({
-      ...prev,
-      playbackPosition: position,
-    }));
-  };
-
-  const setQueue = (tracks: Track[], startIndex = 0) => {
+  const setQueue = useCallback((tracks: Track[], startIndex = 0) => {
+    const track = tracks[startIndex];
+    if (!track) return;
     setPlayerState(prev => ({
       ...prev,
       queue: tracks,
       queueIndex: startIndex,
-      currentTrack: tracks[startIndex] || null,
+      currentTrack: track,
       playbackPosition: 0,
       isPlaying: true,
     }));
-  };
+    loadAndPlay(track, 0);
+  }, [loadAndPlay]);
 
-  const addToQueue = (track: Track) => {
-    setPlayerState(prev => ({
-      ...prev,
-      queue: [...prev.queue, track],
-    }));
-  };
+  const addToQueue = useCallback((track: Track) => {
+    setPlayerState(prev => ({ ...prev, queue: [...prev.queue, track] }));
+  }, []);
 
-  const toggleRepeat = () => {
+  const toggleRepeat = useCallback(() => {
+    const modes: Array<'off' | 'one' | 'all'> = ['off', 'one', 'all'];
     setPlayerState(prev => {
-      const modes: Array<'off' | 'one' | 'all'> = ['off', 'one', 'all'];
-      const currentIndex = modes.indexOf(prev.repeatMode);
-      const nextMode = modes[(currentIndex + 1) % modes.length];
-      return {
-        ...prev,
-        repeatMode: nextMode,
-      };
+      const next = modes[(modes.indexOf(prev.repeatMode) + 1) % modes.length];
+      return { ...prev, repeatMode: next };
     });
-  };
+  }, []);
 
-  const toggleShuffle = () => {
-    setPlayerState(prev => ({
-      ...prev,
-      isShuffle: !prev.isShuffle,
-    }));
-  };
+  const toggleShuffle = useCallback(() => {
+    setPlayerState(prev => ({ ...prev, isShuffle: !prev.isShuffle }));
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => () => { destroyPlayer(); }, [destroyPlayer]);
 
   const value: MusicPlayerContextType = {
     playerState,
+    duration,
     play,
     pause,
     resume,
@@ -159,10 +216,8 @@ export const MusicPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   );
 };
 
-export const useMusicPlayer = () => {
-  const context = useContext(MusicPlayerContext);
-  if (context === undefined) {
-    throw new Error('useMusicPlayer must be used within a MusicPlayerProvider');
-  }
-  return context;
-};
+export function useMusicPlayer() {
+  const ctx = useContext(MusicPlayerContext);
+  if (!ctx) throw new Error('useMusicPlayer must be used within MusicPlayerProvider');
+  return ctx;
+}

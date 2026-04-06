@@ -1,22 +1,30 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
-  SafeAreaView,
+  TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useMusic } from '../../src/context/MusicContext';
-import { colors, spacing, borderRadius, typography, shadows } from '../../src/styles/theme';
+import { colors, spacing, borderRadius, typography, elevation } from '../../src/styles/theme';
 
-// Mock data for demonstration
 const FEATURED_PLAYLISTS = [
   { id: '1', name: 'Chill Vibes', songs: 42 },
   { id: '2', name: 'Workout Mix', songs: 28 },
   { id: '3', name: 'Focus Music', songs: 35 },
   { id: '4', name: 'Late Night', songs: 51 },
+];
+
+const PLAYLIST_GRADIENTS: [string, string][] = [
+  ['#0060EF', '#003380'],
+  ['#30D158', '#1A7A32'],
+  ['#FF453A', '#8B1A15'],
+  ['#BF5AF2', '#6B2FA0'],
 ];
 
 const RECENT_TRACKS = [
@@ -29,6 +37,7 @@ export default function MusicBrowseScreen() {
   const { playTrack, currentTrack, isPlaying } = useMusic();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'browse' | 'search'>('browse');
+  const [focused, setFocused] = useState(false);
 
   const handlePlayTrack = useCallback((track: any) => {
     playTrack({
@@ -46,63 +55,73 @@ export default function MusicBrowseScreen() {
     });
   }, [playTrack]);
 
+  const formatDuration = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['rgba(0,96,239,0.20)', 'transparent']}
+        style={styles.header}
+      >
         <Text style={styles.headerTitle}>Music</Text>
-      </View>
+      </LinearGradient>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search songs, artists..."
-          placeholderTextColor={colors.primary[400]}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <TouchableOpacity style={styles.filterButton}>
-          <Text style={styles.filterIcon}>⚙️</Text>
-        </TouchableOpacity>
+        <View style={[styles.searchBar, focused && styles.searchBarFocused]}>
+          <MaterialCommunityIcons name="magnify" size={20} color={colors.text.secondary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Songs, artists, playlists..."
+            placeholderTextColor={colors.text.secondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <MaterialCommunityIcons name="close-circle" size={18} color={colors.text.secondary} />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'browse' && styles.tabActive]}
-          onPress={() => setActiveTab('browse')}
-        >
-          <Text style={[styles.tabText, activeTab === 'browse' && styles.tabTextActive]}>
-            Browse
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'search' && styles.tabActive]}
-          onPress={() => setActiveTab('search')}
-        >
-          <Text style={[styles.tabText, activeTab === 'search' && styles.tabTextActive]}>
-            Search
-          </Text>
-        </TouchableOpacity>
+        {(['browse', 'search'] as const).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tab, activeTab === tab && styles.tabActive]}
+            onPress={() => setActiveTab(tab)}
+          >
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+              {tab === 'browse' ? 'Browse' : 'Search'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {activeTab === 'browse' ? (
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Featured Section */}
+          {/* Featured Playlists */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Featured Playlists</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.playlistsScroll}
+              contentContainerStyle={styles.playlistsScroll}
             >
-              {FEATURED_PLAYLISTS.map((playlist) => (
-                <TouchableOpacity key={playlist.id} style={styles.playlistCard}>
-                  <View style={styles.playlistCover} />
-                  <Text style={styles.playlistName} numberOfLines={2}>
-                    {playlist.name}
-                  </Text>
+              {FEATURED_PLAYLISTS.map((playlist, i) => (
+                <TouchableOpacity key={playlist.id} style={styles.playlistCard} activeOpacity={0.75}>
+                  <LinearGradient
+                    colors={PLAYLIST_GRADIENTS[i % PLAYLIST_GRADIENTS.length]}
+                    style={styles.playlistCover}
+                  >
+                    <MaterialCommunityIcons name="music" size={36} color="rgba(255,255,255,0.55)" />
+                  </LinearGradient>
+                  <Text style={styles.playlistName} numberOfLines={2}>{playlist.name}</Text>
                   <Text style={styles.playlistCount}>{playlist.songs} songs</Text>
                 </TouchableOpacity>
               ))}
@@ -110,44 +129,40 @@ export default function MusicBrowseScreen() {
           </View>
 
           {/* Recently Played */}
-          <View style={styles.section}>
+          <View style={[styles.section, styles.sectionLast]}>
             <Text style={styles.sectionTitle}>Recently Played</Text>
-            {RECENT_TRACKS.map((track) => (
-              <TouchableOpacity
-                key={track.id}
-                style={[
-                  styles.trackItem,
-                  currentTrack?.id === track.id && styles.trackItemActive,
-                ]}
-                onPress={() => handlePlayTrack(track)}
-              >
-                <View style={styles.trackThumbnail} />
-                <View style={styles.trackInfo}>
-                  <Text
-                    style={[
-                      styles.trackTitle,
-                      currentTrack?.id === track.id && {
-                        color: colors.accent.sage,
-                      },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {track.title}
-                  </Text>
-                  <Text style={styles.trackArtist} numberOfLines={1}>
-                    {track.artist}
-                  </Text>
-                </View>
-                <TouchableOpacity>
-                  <Text style={styles.playIcon}>{isPlaying && currentTrack?.id === track.id ? '⏸' : '▶'}</Text>
+            {RECENT_TRACKS.map((track) => {
+              const isActive = currentTrack?.id === track.id;
+              return (
+                <TouchableOpacity
+                  key={track.id}
+                  style={[styles.trackItem, isActive && styles.trackItemActive]}
+                  onPress={() => handlePlayTrack(track)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.trackThumbnail, isActive && styles.trackThumbnailActive]}>
+                    <MaterialCommunityIcons
+                      name={isActive && isPlaying ? 'pause' : 'play'}
+                      size={20}
+                      color={isActive ? colors.primary : colors.text.secondary}
+                    />
+                  </View>
+                  <View style={styles.trackInfo}>
+                    <Text style={[styles.trackTitle, isActive && styles.trackTitleActive]} numberOfLines={1}>
+                      {track.title}
+                    </Text>
+                    <Text style={styles.trackArtist} numberOfLines={1}>{track.artist}</Text>
+                  </View>
+                  <Text style={styles.trackDuration}>{formatDuration(track.duration)}</Text>
                 </TouchableOpacity>
-              </TouchableOpacity>
-            ))}
+              );
+            })}
           </View>
         </ScrollView>
       ) : (
-        <View style={styles.searchEmptyState}>
-          <Text style={styles.searchEmptyText}>Search for songs, artists, or playlists</Text>
+        <View style={styles.emptyState}>
+          <MaterialCommunityIcons name="magnify" size={48} color={colors.text.tertiary} />
+          <Text style={styles.emptyText}>Search for songs, artists, or playlists</Text>
         </View>
       )}
     </SafeAreaView>
@@ -157,139 +172,138 @@ export default function MusicBrowseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary[50],
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary[100],
   },
   headerTitle: {
     fontSize: typography.sizes['3xl'],
     fontWeight: typography.weights.bold,
-    color: colors.primary[900],
+    color: colors.text.primary,
   },
   searchContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
     gap: spacing.sm,
+    backgroundColor: colors.glass.light,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    height: 44,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  searchBarFocused: {
+    borderColor: colors.primary,
   },
   searchInput: {
     flex: 1,
-    height: 44,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.white,
-    paddingHorizontal: spacing.md,
     fontSize: typography.sizes.base,
-    color: colors.primary[900],
-    borderWidth: 1,
-    borderColor: colors.primary[200],
-    ...shadows.sm,
-  },
-  filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.accent.sage,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  filterIcon: {
-    fontSize: 20,
+    color: colors.text.primary,
   },
   tabs: {
     flexDirection: 'row',
     paddingHorizontal: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary[100],
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    marginBottom: spacing.md,
   },
   tab: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    marginRight: spacing.xl,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: colors.accent.sage,
+    borderBottomColor: colors.primary,
   },
   tabText: {
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.medium,
-    color: colors.primary[400],
+    color: colors.text.secondary,
   },
   tabTextActive: {
-    color: colors.accent.sage,
+    color: colors.primary,
   },
   content: {
     flex: 1,
-    paddingTop: spacing.lg,
   },
   section: {
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.xl,
   },
+  sectionLast: {
+    paddingBottom: spacing.xxl + spacing.xl,
+  },
   sectionTitle: {
     fontSize: typography.sizes.lg,
     fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
+    color: colors.text.primary,
     marginBottom: spacing.md,
   },
   playlistsScroll: {
-    marginHorizontal: -spacing.lg,
-    paddingHorizontal: spacing.lg,
+    paddingRight: spacing.lg,
+    gap: spacing.md,
   },
   playlistCard: {
     width: 140,
-    marginRight: spacing.md,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    ...shadows.md,
+    backgroundColor: colors.backgroundElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...elevation[2],
   },
   playlistCover: {
     width: '100%',
     height: 140,
-    backgroundColor: colors.primary[200],
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   playlistName: {
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
+    color: colors.text.primary,
     padding: spacing.sm,
   },
   playlistCount: {
     fontSize: typography.sizes.xs,
-    color: colors.primary[500],
+    color: colors.text.secondary,
     paddingHorizontal: spacing.sm,
     paddingBottom: spacing.sm,
   },
   trackItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.md,
-    ...shadows.sm,
+    backgroundColor: colors.backgroundElevated,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...elevation[1],
   },
   trackItemActive: {
-    backgroundColor: colors.glass.light,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.accent.sage,
-    paddingLeft: spacing.lg - 3,
+    backgroundColor: colors.primaryDim,
+    borderColor: colors.primaryDim,
   },
   trackThumbnail: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.sm,
-    backgroundColor: colors.primary[200],
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.glass.medium,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: spacing.md,
+  },
+  trackThumbnailActive: {
+    backgroundColor: colors.primaryDim,
   },
   trackInfo: {
     flex: 1,
@@ -297,26 +311,33 @@ const styles = StyleSheet.create({
   trackTitle: {
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
+    color: colors.text.primary,
     marginBottom: spacing.xs,
+  },
+  trackTitleActive: {
+    color: colors.primaryLight,
   },
   trackArtist: {
     fontSize: typography.sizes.sm,
-    color: colors.primary[600],
+    color: colors.text.secondary,
   },
-  playIcon: {
-    fontSize: 18,
-    color: colors.accent.sage,
+  trackDuration: {
+    fontSize: typography.sizes.sm,
+    color: colors.text.tertiary,
+    minWidth: 36,
+    textAlign: 'right',
   },
-  searchEmptyState: {
+  emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: spacing.md,
     paddingHorizontal: spacing.lg,
   },
-  searchEmptyText: {
+  emptyText: {
     fontSize: typography.sizes.base,
-    color: colors.primary[400],
-    fontWeight: typography.weights.medium,
+    color: colors.text.secondary,
+    textAlign: 'center',
   },
 });
+

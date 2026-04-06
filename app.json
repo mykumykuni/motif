@@ -13,6 +13,13 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.motif.app",
+      "googleServicesFile": "./google-services.json",
+      "backgroundColor": "#0D0D14",
+      "navigationBar": {
+        "backgroundColor": "#0D0D14",
+        "barStyle": "light-content"
+      },
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -39,7 +46,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

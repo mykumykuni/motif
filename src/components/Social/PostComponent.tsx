@@ -163,10 +163,12 @@ export const PostComponent: React.FC<PostComponentProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
+    backgroundColor: '#16161F',
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
     ...shadows.md,
   },
   header: {
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   placeholderAvatar: {
-    backgroundColor: colors.primary[200],
+    backgroundColor: colors.glass.medium,
   },
   authorMeta: {
     flex: 1,
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
+    color: '#FFFFFF',
   },
   badge: {
     fontSize: typography.sizes.sm,
@@ -212,17 +214,17 @@ const styles = StyleSheet.create({
   },
   timeAgo: {
     fontSize: typography.sizes.sm,
-    color: colors.primary[500],
+    color: colors.text.secondary,
   },
   moreIcon: {
     fontSize: typography.sizes.lg,
-    color: colors.primary[400],
+    color: colors.text.secondary,
     paddingLeft: spacing.md,
   },
   content: {
     fontSize: typography.sizes.base,
-    lineHeight: typography.lineHeights.normal,
-    color: colors.primary[900],
+    lineHeight: 24,
+    color: '#FFFFFF',
     marginBottom: spacing.md,
     fontWeight: typography.weights.regular,
   },
@@ -235,17 +237,17 @@ const styles = StyleSheet.create({
     width: 240,
     height: 240,
     borderRadius: borderRadius.md,
-    backgroundColor: colors.primary[100],
+    backgroundColor: colors.surface,
   },
   songCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.glass.light,
-    borderRadius: borderRadius.md,
+    borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: colors.primary[200],
+    borderColor: colors.border,
   },
   songCover: {
     width: 56,
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   placeholderCover: {
-    backgroundColor: colors.primary[200],
+    backgroundColor: colors.glass.medium,
   },
   songInfo: {
     flex: 1,
@@ -262,39 +264,39 @@ const styles = StyleSheet.create({
   songTitle: {
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
+    color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   songArtist: {
     fontSize: typography.sizes.xs,
-    color: colors.primary[600],
+    color: colors.text.secondary,
   },
   playIcon: {
     fontSize: typography.sizes.lg,
-    color: colors.accent.sage,
+    color: colors.primary,
     marginLeft: spacing.md,
   },
   stats: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
-    borderTopWidth: 1,
-    borderColor: colors.primary[100],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
     marginBottom: spacing.md,
   },
   statText: {
     fontSize: typography.sizes.sm,
-    color: colors.primary[600],
+    color: colors.text.secondary,
   },
   statDot: {
-    color: colors.primary[300],
+    color: colors.text.secondary,
     marginHorizontal: spacing.sm,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    borderTopWidth: 1,
-    borderColor: colors.primary[100],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
     paddingVertical: spacing.md,
   },
   actionButton: {
@@ -311,14 +313,14 @@ const styles = StyleSheet.create({
   },
   actionIcon: {
     fontSize: typography.sizes.lg,
-    color: colors.primary[500],
+    color: colors.text.secondary,
   },
   actionIconActive: {
-    color: colors.accent.blush,
+    color: colors.error,
   },
   actionLabel: {
     fontSize: typography.sizes.sm,
-    color: colors.primary[700],
+    color: colors.text.primary,
     fontWeight: typography.weights.medium,
   },
 });

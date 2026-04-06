@@ -1,145 +1,174 @@
 import React from 'react';
-import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { StyleSheet, View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { colors } from '@/src/styles/theme';
+import { colors, spacing, borderRadius, typography } from '@/src/styles/theme';
 import { Button } from '@/src/components/UI/Button';
 import { Text } from '@/src/components/UI/Text';
+import { useAuth } from '@/src/context/AuthContext';
 
 export default function SignupScreen() {
   const router = useRouter();
+  const { signUp, clearError } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [localError, setLocalError] = React.useState<string | null>(null);
 
   const handleSignup = async () => {
+    if (!email || !password) { setLocalError('Please fill all fields.'); return; }
+    if (password !== confirmPassword) { setLocalError('Passwords do not match.'); return; }
+    setLocalError(null);
+    clearError();
     setLoading(true);
     try {
-      // TODO: Implement actual authentication logic
-      // For now, navigate to the main app
-      setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 1000);
-    } catch (error) {
-      console.error('Signup error:', error);
+      const username = email.split('@')[0];
+      await signUp(email, password, username);
+      router.replace('/(tabs)');
+    } catch (err: any) {
+      setLocalError(err.message || 'Sign up failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ThemedView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['rgba(0,96,239,0.18)', 'transparent']}
+        style={[styles.gradientOverlay, { pointerEvents: 'none' }]}
+      />
       <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: 'center',
-          paddingHorizontal: 24,
-          paddingVertical: 40,
-        }}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={{ marginBottom: 40, alignItems: 'center' }}>
-          <ThemedText
-            style={{
-              fontSize: 32,
-              fontWeight: 'bold',
-              marginBottom: 8,
-              color: colors.accent.sage,
-            }}
-          >
-            Motif
-          </ThemedText>
-          <ThemedText type="subtitle" style={{ fontSize: 14 }}>
-            Create your account
-          </ThemedText>
+        {/* Logo */}
+        <View style={styles.logoBlock}>
+          <Text variant="h1" color={colors.primary} style={styles.logoText}>Motif</Text>
+          <Text variant="body2" color={colors.text.secondary}>Create your account</Text>
         </View>
 
-        {/* Email Input */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ marginBottom: 8, fontWeight: '500' }}>Email</Text>
-          <TextInput
-            placeholder="Enter your email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={{
-              borderWidth: 1,
-              borderColor: colors.primary[200],
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              height: 48,
-              backgroundColor: colors.primary[50],
-              color: colors.primary[900],
-              fontSize: 14,
-            }}
-            placeholderTextColor={colors.primary[400]}
+        {/* Form */}
+        <View style={styles.form}>
+          <View style={styles.fieldGroup}>
+            <Text variant="caption" color={colors.text.secondary} style={styles.label}>EMAIL</Text>
+            <TextInput
+              placeholder="Enter your email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.input}
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text variant="caption" color={colors.text.secondary} style={styles.label}>PASSWORD</Text>
+            <TextInput
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              style={styles.input}
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text variant="caption" color={colors.text.secondary} style={styles.label}>CONFIRM PASSWORD</Text>
+            <TextInput
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+              style={styles.input}
+              placeholderTextColor={colors.text.tertiary}
+            />
+          </View>
+
+          {localError ? (
+            <Text variant="caption" color={colors.error} style={{ textAlign: 'center', marginBottom: spacing.sm }}>{localError}</Text>
+          ) : null}
+          <Button
+            onPress={handleSignup}
+            label="Create Account"
+            loading={loading}
+            fullWidth
+            style={styles.submitBtn}
           />
-        </View>
 
-        {/* Password Input */}
-        <View style={{ marginBottom: 16 }}>
-          <Text style={{ marginBottom: 8, fontWeight: '500' }}>Password</Text>
-          <TextInput
-            placeholder="Enter your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            style={{
-              borderWidth: 1,
-              borderColor: colors.primary[200],
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              height: 48,
-              backgroundColor: colors.primary[50],
-              color: colors.primary[900],
-              fontSize: 14,
-            }}
-            placeholderTextColor={colors.primary[400]}
-          />
-        </View>
-
-        {/* Confirm Password Input */}
-        <View style={{ marginBottom: 24 }}>
-          <Text style={{ marginBottom: 8, fontWeight: '500' }}>Confirm Password</Text>
-          <TextInput
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            style={{
-              borderWidth: 1,
-              borderColor: colors.primary[200],
-              borderRadius: 8,
-              paddingHorizontal: 12,
-              height: 48,
-              backgroundColor: colors.primary[50],
-              color: colors.primary[900],
-              fontSize: 14,
-            }}
-            placeholderTextColor={colors.primary[400]}
-          />
-        </View>
-
-        {/* Sign Up Button */}
-        <Button
-          onPress={handleSignup}
-          label="Create Account"
-          loading={loading}
-          fullWidth
-          style={{ marginBottom: 16 }}
-        />
-
-        {/* Sign In Link */}
-        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: colors.primary[400] }}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={{ color: colors.accent.sage, fontWeight: '600' }}>Sign In</Text>
-          </TouchableOpacity>
+          <View style={styles.switchRow}>
+            <Text variant="body2" color={colors.text.secondary}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+              <Text variant="body2" color={colors.primary} style={styles.switchLink}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xxl,
+  },
+  logoBlock: {
+    alignItems: 'center',
+    marginBottom: spacing.xxl,
+    gap: spacing.xs,
+  },
+  logoText: {
+    letterSpacing: -1,
+  },
+  form: {
+    gap: spacing.md,
+  },
+  fieldGroup: {
+    gap: spacing.xs,
+  },
+  label: {
+    letterSpacing: 0.8,
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    color: colors.text.primary,
+    fontSize: typography.sizes.base,
+  },
+  submitBtn: {
+    marginTop: spacing.sm,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+  },
+  switchLink: {
+    fontWeight: '600',
+  },
+});

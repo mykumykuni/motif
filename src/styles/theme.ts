@@ -1,151 +1,180 @@
 /**
- * MOTIF Design System
- * Liquid-Glass Aesthetic with Muted Palette
- * Neo-Tactile minimal interactions
+ * MOTIF Design System Tokens — Dark Glassmorphism
  */
 
+// ─── Color Tokens ────────────────────────────────────────────────────────────
 export const colors = {
-  // Primary palette - warm, muted neutrals
-  primary: {
-    50: '#FAF9F7',
-    100: '#F5F2EE',
-    200: '#EBE6E0',
-    300: '#DDD5CC',
-    400: '#CCBFB2',
-    500: '#B8A89A',
-    600: '#A59486',
-    700: '#8B7D74',
-    800: '#6B6157',
-    900: '#4A4238',
+  // Brand
+  primary:      '#0060EF',
+  primaryLight: '#3D8EF5',
+  primaryDim:   'rgba(0, 96, 239, 0.25)',
+  accent:       '#0060EF',  // alias — update here to change accent globally
+
+  // Backgrounds
+  background:         '#0A0A0F',
+  backgroundElevated: '#12121A',
+  backgroundSheet:    '#1A1A24',
+  surface:            'rgba(255, 255, 255, 0.08)',
+  surfaceActive:      'rgba(255, 255, 255, 0.14)',
+
+  // Text
+  text: {
+    primary:   '#FFFFFF',
+    secondary: 'rgba(255, 255, 255, 0.55)',
+    tertiary:  'rgba(255, 255, 255, 0.30)',
   },
 
-  // Accent palette - soft, muted tones (avoid typical blues)
-  accent: {
-    sage: '#9CAF88',        // Muted sage green
-    blush: '#D9B3A8',       // Soft blush pink
-    clay: '#C9A089',        // Warm clay
-    stone: '#A39E95',       // Stone gray
-    dust: '#D4C9BE',        // Soft dust
-    twilight: '#8B8FA3',    // Muted twilight blue
-    bronze: '#C8A574',      // Warm bronze
-  },
+  // Border
+  border:        'rgba(255, 255, 255, 0.10)',
+  borderFocused: 'rgba(0, 96, 239, 0.70)',
 
-  // Semantic colors
-  success: '#A8C96F',       // Muted green
-  warning: '#D9A76A',       // Muted amber
-  error: '#C97070',         // Muted red
-  info: '#8B9DAA',          // Muted blue
+  // Focus
+  focusRing: 'rgba(0, 96, 239, 0.45)',
 
-  // Neutrals
-  white: '#FFFFFF',
-  black: '#000000',
+  // Semantic — Apple dark mode system palette
+  success:      '#30D158',
+  successLight: 'rgba(48, 209, 88, 0.15)',
+  warning:      '#FFD60A',
+  warningLight: 'rgba(255, 214, 10, 0.15)',
+  error:        '#FF453A',
+  errorLight:   'rgba(255, 69, 58, 0.15)',
+  info:         '#0A84FF',
+  infoLight:    'rgba(10, 132, 255, 0.15)',
+
+  // Base
+  white:       '#FFFFFF',
+  black:       '#000000',
   transparent: 'transparent',
 
-  // Glass effect overlays
+  // Glass overlays
   glass: {
-    light: 'rgba(255, 255, 255, 0.1)',
-    medium: 'rgba(255, 255, 255, 0.15)',
-    dark: 'rgba(0, 0, 0, 0.1)',
-  },
-
-  // Gradients for backgrounds
-  gradients: {
-    background: ['#FAF9F7', '#F5F2EE'],
-    card: ['#F9F7F4', '#F0EBE4'],
-    overlay: ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'],
+    subtle: 'rgba(255, 255, 255, 0.05)',
+    light:  'rgba(255, 255, 255, 0.08)',
+    medium: 'rgba(255, 255, 255, 0.14)',
+    strong: 'rgba(255, 255, 255, 0.22)',
+    dark:   'rgba(0, 0, 0, 0.40)',
   },
 };
 
+// ─── Spacing (4px grid) ──────────────────────────────────────────────────────
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 32,
-  xxxl: 48,
+  xs:  4,
+  sm:  8,
+  md:  16,
+  lg:  24,
+  xl:  32,
+  xxl: 48,
 };
 
+// ─── Typography ──────────────────────────────────────────────────────────────
 export const typography = {
-  fontFamily: {
-    regular: 'System',
-    medium: 'System',
-    semibold: 'System',
-    bold: 'System',
-  },
+  // Named scale
+  h1:       { fontSize: 32, fontWeight: '700' as const, lineHeight: 40 },
+  h2:       { fontSize: 24, fontWeight: '700' as const, lineHeight: 32 },
+  subtitle: { fontSize: 18, fontWeight: '500' as const, lineHeight: 26 },
+  body1:    { fontSize: 16, fontWeight: '400' as const, lineHeight: 24 },
+  body2:    { fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
+  caption:  { fontSize: 12, fontWeight: '400' as const, lineHeight: 16 },
+  button:   { fontSize: 16, fontWeight: '700' as const, lineHeight: 24 },
+
+  // Legacy helpers (used by existing components)
   sizes: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
-    xl: 20,
+    xs:    12,
+    sm:    14,
+    base:  16,
+    lg:    18,
+    xl:    20,
     '2xl': 24,
     '3xl': 28,
     '4xl': 32,
     '5xl': 36,
   },
   weights: {
-    regular: '400' as const,
-    medium: '500' as const,
+    regular:  '400' as const,
+    medium:   '500' as const,
     semibold: '600' as const,
-    bold: '700' as const,
+    bold:     '700' as const,
   },
   lineHeights: {
-    tight: 1.2,
-    normal: 1.5,
+    tight:   1.2,
+    normal:  1.5,
     relaxed: 1.75,
-    loose: 2,
+    loose:   2,
   },
 };
 
+// ─── Border Radius ───────────────────────────────────────────────────────────
 export const borderRadius = {
   none: 0,
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  xs:   4,
+  sm:   4,
+  md:   8,
+  lg:   16,
+  xl:   20,
   '2xl': 24,
   full: 9999,
 };
 
-export const shadows = {
-  none: 'none',
-  sm: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+export const radius = borderRadius;
+
+// ─── Elevation / Shadows ─────────────────────────────────────────────────────
+export const elevation = {
+  0: {} as object,
+  1: {
+    shadowColor:   '#000000',
+    shadowOffset:  { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius:  4,
+    elevation:     2,
   },
-  md: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 4,
+  2: {
+    shadowColor:   '#000000',
+    shadowOffset:  { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius:  12,
+    elevation:     6,
   },
-  lg: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  xl: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 8,
+  3: {
+    shadowColor:   '#000000',
+    shadowOffset:  { width: 0, height: 12 },
+    shadowOpacity: 0.50,
+    shadowRadius:  24,
+    elevation:     12,
   },
 };
 
+// Legacy alias
+export const shadows = {
+  none: elevation[0],
+  sm:   elevation[1],
+  md:   elevation[2],
+  lg:   elevation[3],
+  xl: {
+    shadowColor:   '#000000',
+    shadowOffset:  { width: 0, height: 12 },
+    shadowOpacity: 0.16,
+    shadowRadius:  24,
+    elevation:     12,
+  },
+};
+
+// ─── Animations ──────────────────────────────────────────────────────────────
 export const animations = {
-  fast: 200,
+  fast:   200,
   normal: 300,
-  slow: 500,
+  slow:   500,
   slower: 800,
+};
+
+// ─── Gradient Presets ─────────────────────────────────────────────────────────
+export const gradients = {
+  hero:       ['rgba(0,96,239,0.55)', 'rgba(80,0,180,0.30)', 'transparent'] as const,
+  heroAlt:    ['rgba(80,0,180,0.45)', 'rgba(0,96,239,0.25)', 'transparent'] as const,
+  heroWarm:   ['rgba(180,0,80,0.40)', 'rgba(80,0,180,0.30)', 'transparent'] as const,
+  card:       ['rgba(0,96,239,0.45)', 'rgba(0,30,100,0.85)'] as const,
+  playBtn:    ['#0060EF', '#004EC2'] as const,
+  dark:       ['#12121A', '#0A0A0F'] as const,
+  sheet:      ['#1A1A24', '#12121A'] as const,
 };
 
 export const theme = {
@@ -153,6 +182,8 @@ export const theme = {
   spacing,
   typography,
   borderRadius,
+  radius,
+  elevation,
   shadows,
   animations,
 };

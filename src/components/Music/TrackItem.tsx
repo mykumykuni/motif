@@ -56,7 +56,7 @@ export const TrackItem: React.FC<TrackItemProps> = ({
         <Text
           style={[
             styles.title,
-            { color: isPlaying ? colors.accent.sage : colors.primary[900] },
+            { color: isPlaying ? colors.primary : colors.text.primary },
           ]}
           numberOfLines={1}
         >
@@ -83,15 +83,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.white,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.backgroundElevated,
     marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
     ...shadows.sm,
   },
   playing: {
-    backgroundColor: colors.glass.light,
+    backgroundColor: colors.primaryDim,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent.sage,
+    borderLeftColor: colors.primary,
   },
   cover: {
     width: 48,
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   placeholderCover: {
-    backgroundColor: colors.primary[200],
+    backgroundColor: colors.glass.medium,
   },
   info: {
     flex: 1,
@@ -112,7 +114,7 @@ const styles = StyleSheet.create({
   },
   artist: {
     fontSize: typography.sizes.sm,
-    color: colors.primary[600],
+    color: colors.text.secondary,
     fontWeight: typography.weights.regular,
   },
   actions: {
@@ -122,12 +124,12 @@ const styles = StyleSheet.create({
   },
   duration: {
     fontSize: typography.sizes.sm,
-    color: colors.primary[500],
+    color: colors.text.secondary,
     minWidth: 40,
     textAlign: 'right',
   },
   likeIcon: {
     fontSize: 18,
-    color: colors.accent.sage,
+    color: colors.primary,
   },
 });

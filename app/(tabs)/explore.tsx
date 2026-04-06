@@ -1,88 +1,137 @@
-import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
-import { colors, spacing, borderRadius, typography, shadows } from '../../src/styles/theme';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, borderRadius, typography, elevation } from '../../src/styles/theme';
+import { GENRES, TRENDING_TRACKS, BILLBOARD_TRACKS, formatPlays } from '../../src/data/mockData';
 
-const FEATURED_CONTENT = [
-  {
-    id: '1',
-    title: 'New Releases',
-    subtitle: 'This Week\'s Top Tracks',
-    icon: '🆕',
-  },
-  {
-    id: '2',
-    title: 'Trending',
-    subtitle: 'What\'s hot right now',
-    icon: '🔥',
-  },
-  {
-    id: '3',
-    title: 'Discovery',
-    subtitle: 'New music for you',
-    icon: '🎵',
-  },
-  {
-    id: '4',
-    title: 'Artist Hub',
-    subtitle: 'Follow your favorites',
-    icon: '🎤',
-  },
-];
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_W = (SCREEN_WIDTH - spacing.lg * 2 - spacing.sm) / 2;
 
 export default function ExploreScreen() {
+  const [query, setQuery] = useState('');
+  const [activeGenre, setActiveGenre] = useState<string | null>(null);
+
+  const filteredTracks = activeGenre
+    ? TRENDING_TRACKS.filter(t => t.genre?.toLowerCase() === activeGenre.toLowerCase())
+    : TRENDING_TRACKS;
+
+  const filteredBillboard = activeGenre
+    ? BILLBOARD_TRACKS.filter(t => t.genre?.toLowerCase() === activeGenre.toLowerCase())
+    : BILLBOARD_TRACKS.slice(0, 20);
+
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Explore</Text>
-          <Text style={styles.headerSubtitle}>Discover new music & connect</Text>
+          <Text style={styles.title}>Search</Text>
+          <View style={styles.searchBar}>
+            <Ionicons name="search-outline" size={18} color={colors.text.secondary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Artists, songs, podcasts"
+              placeholderTextColor={colors.text.secondary}
+              value={query}
+              onChangeText={setQuery}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')}>
+                <Ionicons name="close-circle" size={18} color={colors.text.secondary} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        {/* Featured Grid */}
-        <View style={styles.grid}>
-          {FEATURED_CONTENT.map((item) => (
+        {/* Genres */}
+        <Text style={styles.sectionTitle}>Browse by Genre</Text>
+        <View style={styles.genreGrid}>
+          {GENRES.map((g) => (
             <TouchableOpacity
-              key={item.id}
-              style={styles.gridItem}
-              activeOpacity={0.7}
-              onPress={() => console.log('Explore', item.title)}
+              key={g.id}
+              style={[styles.genreCard, activeGenre === g.label && styles.genreCardActive]}
+              activeOpacity={0.8}
+              onPress={() => setActiveGenre(activeGenre === g.label ? null : g.label)}
             >
-              <View style={styles.gridIconContainer}>
-                <Text style={styles.gridIcon}>{item.icon}</Text>
-              </View>
-              <Text style={styles.gridTitle}>{item.title}</Text>
-              <Text style={styles.gridSubtitle}>{item.subtitle}</Text>
+              <LinearGradient colors={[g.color1, g.color2]} style={styles.genreGrad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                <Ionicons name="musical-notes-outline" size={22} color="rgba(255,255,255,0.85)" />
+                <Text style={styles.genreLabel}>{g.label}</Text>
+                {activeGenre === g.label && (
+                  <View style={styles.genreCheckmark}>
+                    <Ionicons name="checkmark" size={12} color="#fff" />
+                  </View>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Categories Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Genres</Text>
-          <View style={styles.categoryList}>
-            {['Pop', 'Hip-Hop', 'Rock', 'R&B', 'Electronic', 'Jazz'].map((genre) => (
-              <TouchableOpacity key={genre} style={styles.categoryTag}>
-                <Text style={styles.categoryTagText}>{genre}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        {/* Trending */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>
+            {activeGenre ? `${activeGenre} Tracks` : 'Trending Now'}
+          </Text>
+          {activeGenre && (
+            <TouchableOpacity onPress={() => setActiveGenre(null)}>
+              <Text style={styles.clearFilter}>Clear</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.trendingList}>
+          {(filteredTracks.length > 0 ? filteredTracks : TRENDING_TRACKS).slice(0, 15).map((track, i) => (
+            <TouchableOpacity key={track.id} style={styles.trendingRow} activeOpacity={0.7}>
+              <Text style={styles.trendingRank}>{i + 1}</Text>
+              <View style={styles.trendingThumb}>
+                <LinearGradient
+                  colors={[track.color1, track.color2]}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <Ionicons name="musical-note" size={16} color="#fff" />
+              </View>
+              <View style={styles.trendingMeta}>
+                <Text style={styles.trendingTitle}>{track.title}</Text>
+                <Text style={styles.trendingArtist}>{track.artist}</Text>
+              </View>
+              <View style={styles.trendingRight}>
+                <Text style={styles.trendingPlays}>{formatPlays(track.plays)}</Text>
+                <Ionicons name="play" size={12} color={colors.text.secondary} />
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Quick Stats */}
-        <View style={styles.statsSection}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>2.5M</Text>
-            <Text style={styles.statLabel}>Songs Available</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>500K</Text>
-            <Text style={styles.statLabel}>Active Artists</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>1M+</Text>
-            <Text style={styles.statLabel}>Playlists</Text>
-          </View>
+        {/* Billboard Hot 100 */}
+        <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>
+          {activeGenre ? `Billboard: ${activeGenre}` : 'Billboard Hot 100 (2020–2025)'}
+        </Text>
+        <View style={styles.trendingList}>
+          {filteredBillboard.slice(0, 20).map((track, i) => (
+            <TouchableOpacity key={track.id} style={styles.trendingRow} activeOpacity={0.7}>
+              <View style={styles.billboardRankWrap}>
+                <Text style={styles.billboardRank}>#{track.peakPosition}</Text>
+              </View>
+              <View style={styles.trendingThumb}>
+                <LinearGradient
+                  colors={[track.color1, track.color2]}
+                  style={StyleSheet.absoluteFill}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                <Ionicons name="trophy-outline" size={14} color="#fff" />
+              </View>
+              <View style={styles.trendingMeta}>
+                <Text style={styles.trendingTitle}>{track.title}</Text>
+                <Text style={styles.trendingArtist}>{track.artist} · {track.chartYear}</Text>
+              </View>
+              <View style={styles.trendingRight}>
+                <Text style={styles.trendingPlays}>{track.weeksOnChart}w</Text>
+                <Ionicons name="time-outline" size={12} color={colors.text.secondary} />
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -90,119 +139,116 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.primary[50],
-  },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.primary[100],
-  },
-  headerTitle: {
-    fontSize: typography.sizes['3xl'],
-    fontWeight: typography.weights.bold,
-    color: colors.primary[900],
-    marginBottom: spacing.sm,
-  },
-  headerSubtitle: {
-    fontSize: typography.sizes.base,
-    color: colors.primary[500],
-  },
-  grid: {
+  container: { flex: 1, backgroundColor: colors.background },
+  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg },
+  title: { ...typography.h1, color: colors.text.primary, marginBottom: spacing.md },
+  searchBar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-    gap: spacing.md,
-  },
-  gridItem: {
-    width: '48%',
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
     alignItems: 'center',
-    justifyContent: 'center',
-    ...shadows.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    gap: spacing.sm,
+    ...elevation[1],
   },
-  gridIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.glass.light,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  gridIcon: {
-    fontSize: 32,
-  },
-  gridTitle: {
-    fontSize: typography.sizes.base,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
-    marginBottom: spacing.xs,
-  },
-  gridSubtitle: {
-    fontSize: typography.sizes.sm,
-    color: colors.primary[500],
-    textAlign: 'center',
-  },
-  section: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+  searchInput: {
+    flex: 1,
+    ...typography.body1,
+    color: colors.text.primary,
+    paddingVertical: 0,
   },
   sectionTitle: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary[900],
+    ...typography.h2,
+    color: colors.text.primary,
+    paddingHorizontal: spacing.lg,
     marginBottom: spacing.md,
+    marginTop: spacing.lg,
   },
-  categoryList: {
+  genreGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    paddingHorizontal: spacing.lg,
     gap: spacing.sm,
   },
-  categoryTag: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.primary[200],
-    ...shadows.sm,
+  genreCard: {
+    width: CARD_W,
+    height: 90,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
   },
-  categoryTagText: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.medium,
-    color: colors.primary[700],
+  genreCardActive: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  statsSection: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+  genreGrad: {
+    flex: 1,
+    padding: spacing.md,
     justifyContent: 'space-between',
+  },
+  genreLabel: {
+    ...typography.button,
+    color: '#fff',
+  },
+  genreCheckmark: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.40)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+    marginTop: spacing.lg,
+  },
+  clearFilter: {
+    ...typography.body2,
+    color: colors.primary,
+  },
+  billboardRankWrap: {
+    width: 36,
+    alignItems: 'center',
+  },
+  billboardRank: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  trendingList: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xs,
+  },
+  trendingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
     gap: spacing.md,
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    ...shadows.sm,
-  },
-  statNumber: {
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.bold,
-    color: colors.accent.sage,
-    marginBottom: spacing.xs,
-  },
-  statLabel: {
-    fontSize: typography.sizes.xs,
-    color: colors.primary[600],
-    fontWeight: typography.weights.regular,
+  trendingRank: {
+    ...typography.body2,
+    color: colors.text.secondary,
+    width: 20,
     textAlign: 'center',
   },
+  trendingThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  trendingMeta: { flex: 1 },
+  trendingTitle: { ...typography.body1, color: colors.text.primary },
+  trendingArtist: { ...typography.body2, color: colors.text.secondary, marginTop: 2 },
+  trendingRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  trendingPlays: { ...typography.caption, color: colors.text.secondary },
 });
